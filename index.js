@@ -7,6 +7,8 @@ const port = 3000;
 // Servir arquivos estáticos da pasta 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(express.json()); // Para permitir o processamento de JSON no corpo das requisições
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -17,6 +19,10 @@ let apiKeys = JSON.parse(fs.readFileSync(path.join(__dirname, 'apiKeys.json'), '
 // Middleware para verificar a chave da API
 app.use((req, res, next) => {
   const key = req.query.key;
+  if (req.path === '/create-key') {
+    // Pular verificação de key para a rota de criação de chave
+    return next();
+  }
   if (apiKeys[key]) {
     if (apiKeys[key].used < apiKeys[key].limit) {
       req.apiKey = key; // Salva a chave na requisição
@@ -38,7 +44,6 @@ function getRandomPhrase() {
   return frases[randomIndex];
 }
 
-
 // Rota para obter uma frase aleatória
 app.get('/frases', (req, res) => {
   const frase = getRandomPhrase();
@@ -47,13 +52,33 @@ app.get('/frases', (req, res) => {
   res.json({ frase });
 });
 
-
 // Rota para consultar o uso da chave
 app.get('/uso', (req, res) => {
   const key = req.apiKey;
   const used = apiKeys[key].used;
   const limit = apiKeys[key].limit;
   res.json({ used, limit, remaining: limit - used });
+});
+
+// Rota para criar uma nova Key
+app.post('/create-key', (req, res) => {
+  const { keyName, limit } = req.body;
+
+  if (!keyName || !limit) {
+    return res.status(400).json({ message: 'Nome da chave e limite são necessários.' });
+  }
+
+  if (apiKeys[keyName]) {
+    return res.status(400).json({ message: 'A chave já existe.' });
+  }
+
+  apiKeys[keyName] = {
+    limit: parseInt(limit),
+    used: 0
+  };
+
+  fs.writeFileSync(path.join(__dirname, 'apiKeys.json'), JSON.stringify(apiKeys, null, 2)); // Salva as alterações
+  res.status(201).json({ message: `Chave "${keyName}" criada com sucesso com limite de ${limit} requests.` });
 });
 
 app.listen(port, () => {
