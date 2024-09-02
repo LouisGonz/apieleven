@@ -48,6 +48,17 @@ app.get('/frases', (req, res) => {
 });
 
 
+app.get('/consulta/:cep', async (req, res) => {
+    const { cep } = req.params;
+    
+    try {
+        const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao consultar o CEP' });
+    }
+});
+
 // Rota para consultar o uso da chave
 app.get('/uso', (req, res) => {
   const key = req.apiKey;
