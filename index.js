@@ -17,24 +17,25 @@ app.get('/', (req, res) => {
 let apiKeys = JSON.parse(fs.readFileSync(path.join(__dirname, 'apiKeys.json'), 'utf8'));
 
 // Middleware para verificar a chave da API
-app.use((req, res, next) => {
-  const key = req.query.key;
-  if (req.path === '/create-key') {
-    // Pular verificação de key para a rota de criação de chave
-    return next();
-  }
-  if (apiKeys[key]) {
-    if (apiKeys[key].used < apiKeys[key].limit) {
-      req.apiKey = key; // Salva a chave na requisição
-      next();
-    } else {
-      res.status(403).json({ message: 'Limite de uso excedido para esta chave.' });
-    }
-  } else {
-    res.status(401).json({ message: 'Chave da API inválida.' });
-  }
-});
+app.post('/create-key', (req, res) => {
+  const { keyName, limit } = req.body;
 
+  if (!keyName || !limit) {
+    return res.status(400).json({ message: 'Nome da chave e limite são necessários.' });
+  }
+
+  if (apiKeys[keyName]) {
+    return res.status(400).json({ message: 'A chave já existe.' });
+  }
+
+  apiKeys[keyName] = {
+    limit: parseInt(limit),
+    used: 0
+  };
+
+  fs.writeFileSync(path.join(__dirname, 'apiKeys.json'), JSON.stringify(apiKeys, null, 2)); // Salva as alterações
+  res.status(201).json({ message: `Chave "${keyName}" criada com sucesso com limite de ${limit} requests.` });
+});
 // Função para obter uma frase aleatória
 function getRandomPhrase() {
   const data = fs.readFileSync(path.join(__dirname, 'frases.json'), 'utf8');
