@@ -16,26 +16,6 @@ app.get('/', (req, res) => {
 // Carrega as chaves e limites do arquivo
 let apiKeys = JSON.parse(fs.readFileSync(path.join(__dirname, 'apiKeys.json'), 'utf8'));
 
-// Middleware para verificar a chave da API
-app.post('/create-key', (req, res) => {
-  const { keyName, limit } = req.body;
-
-  if (!keyName || !limit) {
-    return res.status(400).json({ message: 'Nome da chave e limite são necessários.' });
-  }
-
-  if (apiKeys[keyName]) {
-    return res.status(400).json({ message: 'A chave já existe.' });
-  }
-
-  apiKeys[keyName] = {
-    limit: parseInt(limit),
-    used: 0
-  };
-
-  fs.writeFileSync(path.join(__dirname, 'apiKeys.json'), JSON.stringify(apiKeys, null, 2)); // Salva as alterações
-  res.status(201).json({ message: `Chave "${keyName}" criada com sucesso com limite de ${limit} requests.` });
-});
 // Função para obter uma frase aleatória
 function getRandomPhrase() {
   const data = fs.readFileSync(path.join(__dirname, 'frases.json'), 'utf8');
@@ -59,27 +39,6 @@ app.get('/uso', (req, res) => {
   const used = apiKeys[key].used;
   const limit = apiKeys[key].limit;
   res.json({ used, limit, remaining: limit - used });
-});
-
-// Rota para criar uma nova Key
-app.post('/create-key', (req, res) => {
-  const { keyName, limit } = req.body;
-
-  if (!keyName || !limit) {
-    return res.status(400).json({ message: 'Nome da chave e limite são necessários.' });
-  }
-
-  if (apiKeys[keyName]) {
-    return res.status(400).json({ message: 'A chave já existe.' });
-  }
-
-  apiKeys[keyName] = {
-    limit: parseInt(limit),
-    used: 0
-  };
-
-  fs.writeFileSync(path.join(__dirname, 'apiKeys.json'), JSON.stringify(apiKeys, null, 2)); // Salva as alterações
-  res.status(201).json({ message: `Chave "${keyName}" criada com sucesso com limite de ${limit} requests.` });
 });
 
 app.listen(port, () => {
