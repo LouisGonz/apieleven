@@ -1,4 +1,10 @@
 {
-  "keyName": "Eleven",
-  "limit": 9999
+  "Eleven": {
+    "limit": 99999,
+    "used": 8
+  },
+  "key2": {
+    "limit": 5,
+    "used": 0
+  }
 }
