@@ -59,7 +59,7 @@ app.get('/consulta/:cep', async (req, res) => {
     }
 });
 
-// Rota para consultar o uso da chave
+// Rota para consultar o uso da chave UUU
 app.get('/uso', (req, res) => {
   const key = req.apiKey;
   const used = apiKeys[key].used;
