@@ -1,9 +1,9 @@
 {
-  "ELEVEN": {
+  "eleven": {
     "limit": 99999,
     "used": 8
   },
-  "KEY2": {
+  "key": {
     "limit": 5,
     "used": 0
   }
